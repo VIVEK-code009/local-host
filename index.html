@@ -18,7 +18,7 @@
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
-                        brand: '#6366f1', /* Indigo 500 - Modern & Clean */
+                        brand: '#6366f1', /* Indigo 500 */
                         brandDark: '#4f46e5',
                         brandLight: '#e0e7ff',
                         bgMain: '#f3f4f6',
@@ -33,11 +33,13 @@
         .sidebar-link:hover { background-color: #f3f4f6; color: #4f46e5; }
         .sidebar-link.active { background-color: #e0e7ff; color: #4f46e5; font-weight: 600; }
         .hidden-section { display: none; }
-        /* Soft Fade Animation */
         .fade-in { animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        /* Card Hover Effect */
         .hover-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        /* Hide scrollbar for cleaner look */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
     </style>
 </head>
 <body class="h-screen flex overflow-hidden text-gray-800">
@@ -49,12 +51,11 @@
         </div>
 
         <div class="flex-1 overflow-y-auto py-6 px-4 space-y-6">
-            
             <div>
                 <p class="px-2 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Explore</p>
                 <nav class="space-y-1">
                     <div onclick="showTab('explore', this)" class="sidebar-link active flex items-center px-3 py-2 cursor-pointer text-sm text-gray-600">
-                        <i class="fas fa-compass w-6 text-center mr-2"></i> Explore Q&A
+                        <i class="fas fa-compass w-6 text-center mr-2"></i> Explore
                     </div>
                     <div onclick="showTab('projects', this)" class="sidebar-link flex items-center px-3 py-2 cursor-pointer text-sm text-gray-600">
                         <i class="fas fa-rocket w-6 text-center mr-2"></i> Project Talks
@@ -94,31 +95,95 @@
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
         
-        <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8 shadow-sm z-10">
-            <h2 class="text-lg font-bold text-gray-800" id="header-title">Explore Q&A</h2>
+        <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8 shadow-sm z-10 shrink-0">
+            <h2 class="text-lg font-bold text-gray-800" id="header-title">Explore</h2>
             <div class="flex items-center space-x-4">
                 <div class="relative hidden sm:block">
                     <i class="fas fa-search absolute left-3 top-2.5 text-gray-400 text-sm"></i>
-                    <input type="text" placeholder="Search questions..." class="pl-10 pr-4 py-2 bg-gray-100 border-none rounded-full text-sm focus:ring-2 focus:ring-brand focus:bg-white transition w-64">
+                    <input type="text" placeholder="Search skills, notes, or students..." class="pl-10 pr-4 py-2 bg-gray-100 border-none rounded-full text-sm focus:ring-2 focus:ring-brand focus:bg-white transition w-64">
                 </div>
-                <button onclick="toggleModal('qa-modal')" class="bg-brand hover:bg-brandDark text-white px-5 py-2 rounded-full text-sm font-medium shadow-md transition transform hover:scale-105">
-                    <i class="fas fa-plus mr-1"></i> Ask Question
+                <button onclick="toggleModal('qa-modal')" class="bg-brand hover:bg-brandDark text-white px-4 py-2 rounded-lg text-sm font-medium shadow transition">
+                    Log In
                 </button>
             </div>
         </header>
 
         <div class="flex-1 overflow-y-auto p-6 md:p-8" id="main-content">
             
-            <div id="explore" class="content-section fade-in max-w-5xl mx-auto">
-                <div class="flex justify-between items-end mb-6">
-                    <div>
-                        <h1 class="text-2xl font-bold text-gray-900">Community Questions</h1>
-                        <p class="text-gray-500 text-sm">Find answers, help others, and exchange skills.</p>
-                    </div>
-                </div>
+            <div id="explore" class="content-section fade-in">
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    
+                    <div class="hidden lg:block lg:col-span-1 space-y-6">
+                        <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                            <div class="flex items-center space-x-4 mb-4">
+                                <div class="w-12 h-12 rounded-full bg-brand flex items-center justify-center text-white font-bold text-xl" id="profile-card-avatar">U</div>
+                                <div>
+                                    <h3 class="font-bold text-gray-800" id="profile-card-name">You</h3>
+                                    <p class="text-sm text-gray-500">3rd Year CSE</p>
+                                </div>
+                            </div>
+                            <div class="space-y-3 text-sm border-t border-gray-100 pt-4">
+                                <div>
+                                    <p class="text-gray-400 font-semibold text-xs uppercase mb-2">Your Skill Status</p>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Seeking:</span>
+                                    <span class="text-blue-600 font-medium bg-blue-50 px-2 rounded">App Dev</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Offering:</span>
+                                    <span class="text-green-600 font-medium bg-green-50 px-2 rounded">Python</span>
+                                </div>
+                            </div>
+                        </div>
 
-                <div id="qa-container" class="space-y-4">
-                    <p class="text-center text-gray-400 py-10">Connecting to Firebase...</p>
+                        <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Your Communities</p>
+                            <ul class="space-y-2 text-sm text-gray-600">
+                                <li class="hover:text-brand cursor-pointer"><span class="text-blue-500 mr-2">●</span> Coding Club</li>
+                                <li class="hover:text-brand cursor-pointer"><span class="text-purple-500 mr-2">●</span> Placement Prep</li>
+                                <li class="hover:text-brand cursor-pointer"><span class="text-green-500 mr-2">●</span> Hostel 4 Group</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                            <div class="flex items-center space-x-4 mb-4">
+                                <input onclick="toggleModal('qa-modal')" type="text" placeholder="What do you need help with today?" class="flex-1 bg-gray-50 border border-gray-200 rounded-lg py-3 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand cursor-pointer hover:bg-white transition">
+                            </div>
+                            <div class="flex justify-between text-sm text-gray-500 px-2">
+                                <button onclick="toggleModal('qa-modal')" class="flex items-center space-x-2 hover:text-brand transition"><i class="fas fa-hand-paper"></i> <span>Ask for Help</span></button>
+                                <button onclick="toggleModal('qa-modal')" class="flex items-center space-x-2 hover:text-brand transition"><i class="fas fa-lightbulb"></i> <span>Offer Skill</span></button>
+                                <button class="flex items-center space-x-2 hover:text-brand transition"><i class="fas fa-share-alt"></i> <span>Share Resource</span></button>
+                            </div>
+                        </div>
+
+                        <div id="qa-container" class="space-y-6">
+                            <p class="text-center text-gray-400 py-10">Connecting to Firebase...</p>
+                        </div>
+                    </div>
+
+                    <div class="hidden lg:block lg:col-span-1 space-y-6">
+                        <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                            <h3 class="font-bold text-gray-800 mb-4 flex items-center"><i class="fas fa-fire text-orange-500 mr-2"></i> Trending</h3>
+                            <div class="space-y-4">
+                                <div class="cursor-pointer group">
+                                    <p class="font-semibold text-gray-700 text-sm group-hover:text-brand">DSA Study Group</p>
+                                    <p class="text-xs text-gray-500">Daily 6 PM at Library</p>
+                                </div>
+                                <div class="cursor-pointer group">
+                                    <p class="font-semibold text-gray-700 text-sm group-hover:text-brand">Flutter Workshop</p>
+                                    <p class="text-xs text-gray-500">Hosted by Coding Club</p>
+                                </div>
+                                <div class="cursor-pointer group">
+                                    <p class="font-semibold text-gray-700 text-sm group-hover:text-brand">Semester 5 Notes</p>
+                                    <p class="text-xs text-gray-500">Top download this week</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -131,31 +196,15 @@
                     </div>
                     <div class="absolute -right-10 -bottom-20 w-64 h-64 bg-indigo-500 rounded-full opacity-50"></div>
                 </div>
-
                 <h3 class="font-bold text-gray-700 mb-4">Trending Projects</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-white p-6 rounded-xl border border-gray-200 hover-card transition cursor-pointer">
+                     <div class="bg-white p-6 rounded-xl border border-gray-200 hover-card transition cursor-pointer">
                         <div class="flex justify-between mb-4">
                             <span class="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded">Open for Collab</span>
                             <i class="far fa-bookmark text-gray-400"></i>
                         </div>
                         <h3 class="text-lg font-bold mb-2">AI Study Assistant App</h3>
                         <p class="text-gray-500 text-sm mb-4">Building a Python app that summarizes lecture notes. Need a frontend dev (React) to help with the UI.</p>
-                        <div class="flex items-center justify-between border-t pt-4">
-                            <div class="flex -space-x-2">
-                                <div class="w-8 h-8 rounded-full bg-red-400 border-2 border-white"></div>
-                                <div class="w-8 h-8 rounded-full bg-blue-400 border-2 border-white"></div>
-                            </div>
-                            <span class="text-xs text-gray-400">2 spots left</span>
-                        </div>
-                    </div>
-                     <div class="bg-white p-6 rounded-xl border border-gray-200 hover-card transition cursor-pointer">
-                        <div class="flex justify-between mb-4">
-                            <span class="bg-purple-100 text-purple-700 text-xs font-bold px-2 py-1 rounded">Feedback Needed</span>
-                            <i class="far fa-bookmark text-gray-400"></i>
-                        </div>
-                        <h3 class="text-lg font-bold mb-2">Sustainable Energy Dashboard</h3>
-                        <p class="text-gray-500 text-sm mb-4">Created a dashboard for tracking home energy use. Looking for seniors to review my code.</p>
                     </div>
                 </div>
             </div>
@@ -171,27 +220,8 @@
                             </div>
                         </div>
                         <div class="pt-10 px-6 pb-6">
-                            <div class="flex justify-between items-center mb-1">
-                                <h3 class="font-bold text-lg">John Doe</h3>
-                                <span class="bg-yellow-100 text-yellow-800 text-xs font-bold px-2 py-0.5 rounded">Senior (Yr 4)</span>
-                            </div>
-                            <p class="text-sm text-gray-500 mb-4">Machine Learning Specialist. Can help with Python, TensorFlow, and Final Year Projects.</p>
-                            <button class="w-full bg-white border border-brand text-brand font-semibold py-2 rounded-lg hover:bg-brand hover:text-white transition">Request Mentorship</button>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover-card transition">
-                        <div class="h-24 bg-gradient-to-r from-pink-500 to-rose-500"></div>
-                        <div class="px-6 relative">
-                             <div class="w-16 h-16 rounded-full bg-white p-1 absolute -top-8 border border-gray-200">
-                                <img src="https://ui-avatars.com/api/?name=Sarah+Lee&background=db2777&color=fff" class="rounded-full w-full h-full">
-                            </div>
-                        </div>
-                        <div class="pt-10 px-6 pb-6">
-                             <div class="flex justify-between items-center mb-1">
-                                <h3 class="font-bold text-lg">Sarah Lee</h3>
-                                <span class="bg-yellow-100 text-yellow-800 text-xs font-bold px-2 py-0.5 rounded">Senior (Yr 3)</span>
-                            </div>
-                            <p class="text-sm text-gray-500 mb-4">Frontend Wizard. Expert in React, Tailwind, and UI/UX Design.</p>
+                            <h3 class="font-bold text-lg">John Doe</h3>
+                            <p class="text-sm text-gray-500 mb-4">Machine Learning Specialist.</p>
                             <button class="w-full bg-white border border-brand text-brand font-semibold py-2 rounded-lg hover:bg-brand hover:text-white transition">Request Mentorship</button>
                         </div>
                     </div>
@@ -205,16 +235,8 @@
                             <i class="fas fa-hashtag text-gray-400 mr-2"></i>
                             <span class="font-bold">general-chat</span>
                         </div>
-                        <div class="flex -space-x-2">
-                            <div class="w-6 h-6 rounded-full bg-gray-300 border border-white"></div>
-                            <div class="w-6 h-6 rounded-full bg-gray-400 border border-white"></div>
-                            <div class="w-6 h-6 rounded-full bg-gray-500 border border-white text-[10px] text-white flex items-center justify-center">+5</div>
-                        </div>
                     </div>
-                    
-                    <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 bg-white">
-                        </div>
-
+                    <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 bg-white"></div>
                     <div class="p-4 bg-gray-50 border-t border-gray-100 flex items-center">
                         <button class="text-gray-400 hover:text-gray-600 mr-3"><i class="fas fa-plus-circle text-xl"></i></button>
                         <input type="text" id="chat-input" placeholder="Message #general..." class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-brand" onkeypress="if(event.key==='Enter') sendChat()">
@@ -229,25 +251,25 @@
     <div id="qa-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 backdrop-blur-sm">
         <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg transform transition-all scale-100">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-bold text-gray-800">Ask the Community</h3>
+                <h3 class="text-xl font-bold text-gray-800">Create a Post</h3>
                 <button onclick="toggleModal('qa-modal')" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
             </div>
             
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">What do you need help with?</label>
-                    <input id="qa-title" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-brand focus:border-brand outline-none" placeholder="e.g. How do I center a div in CSS?">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Content</label>
+                    <textarea id="qa-title" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-brand focus:border-brand outline-none h-24" placeholder="I'm struggling with Data Structures..."></textarea>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tag</label>
                     <select id="qa-tag" class="w-full border border-gray-300 rounded-lg p-2.5 bg-white">
-                        <option value="Coding">Coding Help</option>
+                        <option value="Help Needed">Help Needed</option>
+                        <option value="Offering Skill">Offering Skill</option>
                         <option value="Project">Project Idea</option>
-                        <option value="Math">Mathematics</option>
-                        <option value="Other">Other</option>
+                        <option value="Resource">Resource Share</option>
                     </select>
                 </div>
-                <button onclick="postQuestion()" class="w-full bg-brand text-white font-bold py-3 rounded-xl hover:bg-brandDark transition shadow-lg mt-2">Post Question</button>
+                <button onclick="postQuestion()" class="w-full bg-brand text-white font-bold py-3 rounded-xl hover:bg-brandDark transition shadow-lg mt-2">Post</button>
             </div>
         </div>
     </div>
@@ -255,7 +277,12 @@
     <script>
         // --- 1. CONFIGURATION (PASTE KEYS HERE) ---
         const firebaseConfig = {
-            // !!! PASTE YOUR FIREBASE KEYS HERE !!!
+           apiKey: "AIzaSyCLafxMmbSanvmgP9KPvWXO7968BgkSMAQ",
+  authDomain: "skillxchange-93fac.firebaseapp.com",
+  projectId: "skillxchange-93fac",
+  storageBucket: "skillxchange-93fac.firebasestorage.app",
+  messagingSenderId: "363649168062",
+  appId: "1:363649168062:web:a938e95d8c7a684a1de4ef"// !!! PASTE YOUR FIREBASE KEYS HERE !!!
             
             
         };
@@ -273,8 +300,11 @@
             }
             document.getElementById('user-name-display').innerText = username;
             document.getElementById('user-avatar').innerText = username.charAt(0).toUpperCase();
+            document.getElementById('profile-card-name').innerText = username;
+            document.getElementById('profile-card-avatar').innerText = username.charAt(0).toUpperCase();
 
-            // --- 3. EXPLORE Q&A LOGIC ---
+
+            // --- 3. EXPLORE POSTS LOGIC ---
             function postQuestion() {
                 const title = document.getElementById('qa-title').value;
                 const tag = document.getElementById('qa-tag').value;
@@ -290,27 +320,46 @@
                 }
             }
 
-            // Realtime Listener for Questions
+            // Realtime Listener for Posts (Updated Design)
             db.collection("questions").orderBy("timestamp", "desc").onSnapshot(snap => {
                 const container = document.getElementById("qa-container");
                 container.innerHTML = "";
                 snap.forEach(doc => {
                     const data = doc.data();
-                    const colors = { 'Coding': 'bg-blue-100 text-blue-700', 'Project': 'bg-purple-100 text-purple-700', 'Math': 'bg-red-100 text-red-700', 'Other': 'bg-gray-100 text-gray-700' };
-                    const tagClass = colors[data.tag] || colors['Other'];
                     
+                    // Logic to color tags based on type
+                    let tagStyle = "bg-gray-100 text-gray-700 border-gray-300";
+                    if(data.tag === "Help Needed") tagStyle = "bg-red-50 text-red-700 border-red-200";
+                    if(data.tag === "Offering Skill") tagStyle = "bg-green-50 text-green-700 border-green-200";
+                    if(data.tag === "Resource") tagStyle = "bg-blue-50 text-blue-700 border-blue-200";
+                    if(data.tag === "Project") tagStyle = "bg-purple-50 text-purple-700 border-purple-200";
+
                     const card = `
-                        <div class="bg-white p-5 rounded-xl border border-gray-200 hover-card transition cursor-pointer flex justify-between items-center">
-                            <div>
-                                <div class="flex items-center space-x-2 mb-1">
-                                    <span class="${tagClass} text-xs font-bold px-2 py-0.5 rounded">${data.tag}</span>
-                                    <span class="text-xs text-gray-400">by ${data.author}</span>
+                        <div class="bg-white p-6 rounded-xl border border-gray-200 hover-card transition shadow-sm">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 text-white flex items-center justify-center font-bold">
+                                        ${data.author.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-gray-800">${data.author} <span class="text-gray-400 text-sm font-normal">• Student</span></h3>
+                                        <p class="text-xs text-gray-400">Just now</p>
+                                    </div>
                                 </div>
-                                <h3 class="text-lg font-semibold text-gray-800">${data.title}</h3>
+                                <i class="fas fa-ellipsis-h text-gray-400 cursor-pointer"></i>
                             </div>
-                            <button class="text-brand hover:bg-brandLight p-2 rounded-full transition">
-                                <i class="far fa-comment-dots text-xl"></i>
-                            </button>
+                            
+                            <p class="text-gray-800 mb-4 leading-relaxed">${data.title}</p>
+                            
+                            <div class="flex space-x-2 mb-4">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold border ${tagStyle}">${data.tag}</span>
+                            </div>
+
+                            <div class="flex space-x-6 text-sm text-gray-500 border-t border-gray-100 pt-4">
+                                <button class="flex items-center space-x-2 hover:text-brand transition"><i class="far fa-comment-dots"></i> <span>Chat</span></button>
+                                <button class="flex items-center space-x-2 hover:text-brand transition"><i class="fas fa-link"></i> <span>Connect</span></button>
+                                <button class="flex items-center space-x-2 hover:text-brand transition"><i class="far fa-heart"></i> <span>Like</span></button>
+                            </div>
                         </div>
                     `;
                     container.innerHTML += card;
@@ -358,7 +407,7 @@
             document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
             if(el) el.classList.add('active');
             
-            const titles = {'explore': 'Explore Q&A', 'projects': 'Project Talks', 'seniors': 'Find Mentors', 'chat': 'Group Chat'};
+            const titles = {'explore': 'Explore', 'projects': 'Project Talks', 'seniors': 'Find Mentors', 'chat': 'Group Chat'};
             document.getElementById('header-title').innerText = titles[id];
         }
 
