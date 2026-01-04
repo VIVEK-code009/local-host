@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkillXChange | Pro Student Profile</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* ========= LIGHT THEME ========= */
+    :root {
+      --glass: #ffffff;
+      --glass-border: #e5e7eb;
+      --accent: #2563eb;
+      --bg-gradient: linear-gradient(180deg, #f8fafc, #eef2ff);
+      --text: #0f172a;
+    }
+
+    /* ========= DARK THEME ========= */
+    .dark-theme {
+      --glass: rgba(30, 30, 35, 0.85);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --bg-gradient: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      --text: #ffffff;
+      --accent: #58a6ff;
+    }
+
+    * {
+      box-sizing: border-box;
+      transition: all 0.3s ease;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg-gradient);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    /* ========= CARD ========= */
+    .profile-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      width: 100%;
+      max-width: 900px;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Remove blur only in LIGHT mode */
+    body:not(.dark-theme) .profile-card {
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      box-shadow: 0 15px 40px rgba(15, 23, 42, 0.12);
+    }
+
+    /* Keep blur in DARK mode */
+    body.dark-theme .profile-card {
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    }
+
+    /* ========= SIDEBAR ========= */
+    .sidebar {
+      padding: 40px;
+      background: #f1f5f9;
+      text-align: center;
+      border-right: 1px solid var(--glass-border);
+    }
+
+    body.dark-theme .sidebar {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .profile-ring {
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      padding: 5px;
+      background: linear-gradient(45deg, var(--accent), #22c55e);
+      margin: 0 auto 20px;
+    }
+
+    .profile-ring img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: white;
+      object-fit: cover;
+    }
+
+    .social-links {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 15px;
+    }
+
+    .social-icon {
+      font-size: 22px;
+      color: var(--text);
+      text-decoration: none;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .link-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #22c55e;
+      color: white;
+      font-size: 10px;
+      border-radius: 50%;
+      width: 15px;
+      height: 15px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ========= CONTENT ========= */
+    .content {
+      padding: 40px;
+      padding-bottom: 100px;
+      position: relative;
+    }
+
+    .edit-active {
+      outline: 2px dashed var(--accent);
+      outline-offset: 4px;
+      background: rgba(37, 99, 235, 0.08);
+      border-radius: 8px;
+    }
+
+    /* ========= SKILLS ========= */
+    .skills-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .skill-tag {
+      padding: 6px 15px;
+      background: #e0e7ff;
+      color: #1e3a8a;
+      border-radius: 50px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    body.dark-theme .skill-tag {
+      background: var(--accent);
+      color: white;
+    }
+
+    .remove-skill {
+      cursor: pointer;
+      display: none;
+      font-size: 14px;
+    }
+
+    .add-skill-btn {
+      display: none;
+      padding: 6px 15px;
+      background: #22c55e;
+      color: white;
+      border-radius: 50px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+    }
+
+    /* ========= BIO ========= */
+    .bio-box {
+      margin-top: 40px;
+      background: #f8fafc;
+      padding: 20px;
+      border-radius: 15px;
+      border: 1px solid var(--glass-border);
+    }
+
+    body.dark-theme .bio-box {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* ========= NAV DOCK ========= */
+    .nav-dock {
+      position: absolute;
+      bottom: 25px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      padding: 10px 40px;
+      border-radius: 50px;
+      display: flex;
+      gap: 40px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      z-index: 100;
+    }
+
+    .dock-item {
+      color: var(--text);
+      font-size: 22px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      text-decoration: none;
+    }
+
+    .dock-item:hover {
+      color: var(--accent);
+      transform: translateY(-3px);
+    }
+
+    @media (max-width: 768px) {
+      .profile-card {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body onload="loadData()">
+
+<div class="profile-card" id="profileCard" style="display:none;">
+
+
+  <div class="sidebar">
+    <div class="profile-ring">
+      <img id="avatarImg" src="https://ui-avatars.com/api/?name=User">
+    </div>
+
+   <h2 id="userName"></h2>
+    <p id="userRole" style="opacity:.7"></p>
+
+    <div class="social-links">
+      <a id="ghLink" href="#" class="social-icon" onclick="handleLinkEdit(event,'github')">
+        <i class="fab fa-github"></i>
+        <span class="link-badge"><i class="fas fa-plus"></i></span>
+      </a>
+      <a id="gmLink" href="#" class="social-icon" onclick="handleLinkEdit(event,'gmail')">
+        <i class="fas fa-envelope"></i>
+        <span class="link-badge"><i class="fas fa-plus"></i></span>
+      </a>
+    </div>
+
+    <p style="margin-top:30px">
+      <i class="fas fa-university"></i>
+      <span id="userUni" contenteditable="false">MIT University</span>
+    </p>
+  </div>
+
+  <div class="content">
+
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h1>Dashboard</h1>
+      <button onclick="document.body.classList.toggle('dark-theme')" class="dock-item">
+        <i class="fas fa-adjust"></i>
+      </button>
+    </div>
+
+    <h3>My Expertise</h3>
+    <div class="skills-container" id="skillsList">
+      <button class="add-skill-btn" id="addBtn" onclick="addNewSkill()">+ Add Skill</button>
+    </div>
+
+    <div class="bio-box">
+      <h3>Bio</h3>
+      <p id="bioText" contenteditable="false">Click edit to update your profile bio!</p>
+    </div>
+
+    <nav class="nav-dock">
+      <a href="index.html" class="dock-item"><i class="fas fa-home"></i></a>
+      <button class="dock-item" id="toggleBtn" onclick="toggleEdit()">
+        <i class="fas fa-edit"></i>
+      </button>
+    </nav>
+
+  </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+    apiKey: "AIzaSyCLafxMmbSanvmgP9KPvWXO7968BgkSMAQ",
+    authDomain: "skillxchange-93fac.firebaseapp.com",
+    projectId: "skillxchange-93fac",
+    storageBucket: "skillxchange-93fac.firebasestorage.app",
+    messagingSenderId: "363649168062",
+    appId: "1:363649168062:web:a938e95d8c7a684a1de4ef"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  let isEditing = false;
+
+  function toggleEdit() {
+    isEditing = !isEditing;
+
+    document.querySelectorAll('#userName,#userRole,#userUni,#bioText,.skill-text')
+      .forEach(el => {
+        el.contentEditable = isEditing;
+        el.classList.toggle('edit-active');
+      });
+
+    document.getElementById('addBtn').style.display = isEditing ? 'block' : 'none';
+    document.querySelectorAll('.remove-skill')
+      .forEach(i => i.style.display = isEditing ? 'inline' : 'none');
+    document.querySelectorAll('.link-badge')
+      .forEach(b => b.style.display = isEditing ? 'flex' : 'none');
+
+    document.getElementById('toggleBtn').innerHTML =
+      isEditing ? '<i class="fas fa-check" style="color:#22c55e"></i>' : '<i class="fas fa-edit"></i>';
+
+    if (!isEditing) {
+      saveData();
+      alert("Profile Saved 🚀");
+    }
+  }
+
+  function handleLinkEdit(e, type) {
+    if (!isEditing) return;
+    e.preventDefault();
+
+    if (type === 'github') {
+     url = prompt("GitHub URL:", ghLink.href);
+      if (url) ghLink.href = url;
+    } else {
+      const email = prompt("Gmail:", gmLink.href.replace('mailto:', ''));
+      if (email) gmLink.href = 'mailto:' + email;
+    }
+  }
+
+  function addNewSkill() {
+    const s = prompt("New Skill:");
+    if (s) createSkill(s);
+  }
+
+  function createSkill(name) {
+    const tag = document.createElement('div');
+    tag.className = 'skill-tag';
+    tag.innerHTML = `
+      <span class="skill-text">${name}</span>
+      <i class="fas fa-times remove-skill" onclick="this.parentElement.remove()"></i>
+    `;
+    skillsList.insertBefore(tag, addBtn);
+  }
+
+  async function saveData() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  await db.collection("users").doc(user.uid).update({
+    firstName: userName.innerText.split(" ")[0],
+    lastName: userName.innerText.split(" ").slice(1).join(" "),
+    university: userUni.innerText,
+    githubLink: ghLink.href,
+    email: gmLink.href.replace("mailto:", ""),
+    bio: bioText.innerText,
+    skills: [...document.querySelectorAll('.skill-text')].map(s => s.innerText)
+  });
+}
+
+ function loadData() {
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    const doc = await db.collection("users").doc(user.uid).get();
+    if (!doc.exists) return;
+
+    const data = doc.data();
+
+    const fullName = `${data.firstName} ${data.lastName}`;
+    userName.innerText = fullName;
+    avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}`;
+
+    userRole.innerText = data.role || "Student";
+    userUni.innerText = data.university || "—";
+    bioText.innerText = data.bio || "Click edit to update your profile bio!";
+
+
+    if (data.githubLink && data.githubLink.trim()) {
+      let gh = data.githubLink.trim();
+      gh = gh.split("/").filter(Boolean).pop();
+      ghLink.href = `https://github.com/${gh}`;
+      ghLink.target = "_blank";
+    }
+
+    gmLink.href = data.email ? `mailto:${data.email}` : "#";
+
+    if (data.skills?.length) {
+      data.skills.forEach(createSkill);
+    }
+
+    // ✅ SHOW UI ONLY AFTER DATA IS READY
+    document.getElementById("profileCard").style.display = "grid";
+  });
+}
+
+
+</script>
+
+</body>
+</html>

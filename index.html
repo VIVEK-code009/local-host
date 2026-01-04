@@ -74,7 +74,7 @@
                     <i class="fas fa-comments w-6 text-center mr-2"></i> Messages
                     <span class="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full hidden" id="msg-badge"></span>
                 </div>
-                <div onclick="filterMyPosts()"
+                <div onclick="openMyPosts(this)"
      class="sidebar-link flex items-center px-3 py-2.5 cursor-pointer text-sm text-gray-600">
   <i class="fas fa-pencil-alt w-6 text-center mr-2"></i>
   My Posts
@@ -169,10 +169,15 @@
                                     <div class="text-xs text-blue-600 font-bold">120</div>
                                 </div>
                             </div>
-                            <div onclick="filterMyPosts()"
+                            <div onclick="openMyPosts(this)"
      class="border-t border-gray-200 px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center gap-2">
   <i class="fas fa-pencil-alt text-gray-500 text-xs"></i>
   <span class="text-xs font-bold text-gray-900">My Posts</span>
+</div>
+<div onclick="openMyProjects(this)"
+     class="border-t border-gray-200 px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center gap-2">
+  <i class="fas fa-folder-open text-gray-500 text-xs"></i>
+  <span class="text-xs font-bold text-gray-900">My Projects</span>
 </div>
 
                         </div>
@@ -249,6 +254,19 @@
       <p class="text-gray-400 col-span-full text-center">
         Loading your projects...
       </p>
+    </div>
+  </div>
+</div>
+<!-- MY POSTS PAGE -->
+<div id="my-posts" class="page-section overflow-y-auto h-full p-6 md:p-8">
+  <div class="max-w-4xl mx-auto">
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-gray-900">My Posts</h1>
+      <p class="text-gray-500">Posts you have published.</p>
+    </div>
+
+    <div id="my-posts-container" class="space-y-6">
+      <p class="text-gray-400 text-center">Loading your posts...</p>
     </div>
   </div>
 </div>
@@ -461,19 +479,21 @@ auth.onAuthStateChanged(async (user) => {
     logoutBtn.classList.remove("hidden");
 
     // Replace header login buttons
-    authSection.innerHTML = `
-      <div class="flex items-center space-x-3">
-        <div class="text-right hidden md:block">
-          <p class="text-sm font-bold text-gray-700">${fullName}</p>
-          <p onclick="logout()" class="text-xs text-red-500 cursor-pointer">
-            Logout
-          </p>
-        </div>
-        <div class="w-9 h-9 rounded-full bg-brand text-white flex items-center justify-center font-bold">
-          ${fullName.charAt(0)}
-        </div>
-      </div>
-    `;
+   authSection.innerHTML = `
+  <div
+    onclick="window.location.href='profile.html'"
+    class="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 px-3 py-1.5 rounded-lg transition">
+
+    <div class="text-right hidden md:block">
+      <p class="text-sm font-bold text-gray-700">${fullName}</p>
+    </div>
+
+    <div class="w-9 h-9 rounded-full bg-brand text-white flex items-center justify-center font-bold">
+      ${fullName.charAt(0)}
+    </div>
+  </div>
+`;
+
   } else {
     // GUEST MODE
     localStorage.removeItem("sx_user");
@@ -495,13 +515,7 @@ auth.onAuthStateChanged(async (user) => {
     `;
   }
 });
-function filterMyPosts() {
-  const currentUser = localStorage.getItem("sx_user");
-  if (!currentUser) return;
 
-  const myPosts = allPosts.filter(post => post.author === currentUser);
-  renderFeed(myPosts);
-}
 function toggleLike(postId) {
   const currentUser = localStorage.getItem("sx_user");
 
@@ -623,7 +637,6 @@ const heartIcon = hasLiked
                 renderFeed(filteredPosts);
             };
             loadChatMessages();
-            loadGitHubRepos(); // Load GitHub Repos
         } else {
             alert("Please paste your Firebase API Key in the code!");
         }
@@ -780,7 +793,80 @@ function messageProjectAuthor(author) {
   // 🔥 THIS DOES EVERYTHING
   openDM(author);
 }
+function openMyPosts(btn) {
+  const user = localStorage.getItem("sx_user");
 
+  if (!user || user === "Guest") {
+    alert("Please log in to view your posts.");
+    return;
+  }
+
+  switchPage("my-posts", btn || null);
+  loadMyPosts();
+}
+function loadMyPosts() {
+  const container = document.getElementById("my-posts-container");
+  const user = localStorage.getItem("sx_user");
+
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  db.collection("questions")
+    .where("author", "==", user)
+    .get()
+    .then(snapshot => {
+      if (snapshot.empty) {
+        container.innerHTML = `
+          <p class="text-gray-400 text-center">
+            You haven’t posted anything yet.
+          </p>`;
+        return;
+      }
+
+      snapshot.forEach(doc => {
+        const post = doc.data();
+
+        container.innerHTML += `
+          <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+            <p class="text-gray-700 mb-4">${post.title}</p>
+
+            <div class="flex justify-between items-center text-sm">
+              <span class="text-gray-400">${post.tag}</span>
+
+              <div class="flex gap-3">
+                <button onclick="editPost('${doc.id}', '${post.title}', '${post.tag}')"
+                        class="text-blue-600 hover:underline">
+                  Edit
+                </button>
+
+                <button onclick="deletePost('${doc.id}')"
+                        class="text-red-500 hover:underline">
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    });
+}
+function deletePost(postId) {
+  if (!confirm("Delete this post?")) return;
+
+  db.collection("questions").doc(postId).delete()
+    .then(() => loadMyPosts());
+}
+let editingPostId = null;
+
+function editPost(id, title, tag) {
+  editingPostId = id;
+
+  document.getElementById("qa-title").value = title;
+  document.getElementById("qa-tag").value = tag;
+
+  toggleModal("qa-modal");
+}
 
 
         // 3. PAGE SWITCHER
@@ -794,6 +880,7 @@ function messageProjectAuthor(author) {
                 'explore': 'Explore Feed',
                 'projects': 'Projects', 
                 'my-projects': 'My Projects',
+                'my-posts': 'My Posts',
                 'seniors': 'Senior Mentors',
                 'chat': 'Messages'
             };
@@ -856,36 +943,131 @@ function messageProjectAuthor(author) {
             if(!document.getElementById(`room-${roomId}`)) {
                 document.getElementById('no-dms-msg').style.display = 'none';
                 dmList.innerHTML += `
-                    <div onclick="switchRoom('${roomId}', '${targetUser}')" id="room-${roomId}" class="chat-room-item flex items-center px-3 py-2 text-sm text-gray-600">
-                        <div class="w-2 h-2 rounded-full bg-green-500 mr-2"></div> ${targetUser}
-                    </div>
-                `;
+  <div id="room-${roomId}"
+       class="chat-room-item flex items-center justify-between px-3 py-2 text-sm text-gray-600">
+
+    <div onclick="switchRoom('${roomId}', '${targetUser}')"
+         class="flex items-center gap-2 cursor-pointer">
+      <div class="w-2 h-2 rounded-full bg-green-500"></div>
+      ${targetUser}
+    </div>
+
+    <!-- 3 DOTS -->
+    <div class="relative">
+      <button type="button"
+              onclick="event.stopPropagation(); toggleDMMenu('${roomId}')"
+              class="px-2 text-gray-500 hover:text-gray-800">
+        ⋮
+      </button>
+
+      <!-- DELETE MENU -->
+      <div id="menu-${roomId}"
+           class="hidden absolute right-0 mt-1 bg-white border rounded shadow-md z-50">
+        <button
+          onclick="deletePersonalChat('${roomId}')"
+          class="block w-full px-4 py-2 text-left text-sm text-red-500 hover:bg-gray-100">
+          Delete
+        </button>
+      </div>
+    </div>
+
+  </div>
+`;
+
             }
             switchPage('chat', document.querySelector("div[onclick=\"switchPage('chat', this)\"]"));
             switchRoom(roomId, targetUser);
         }
+function toggleDMMenu(roomId) {
+  const menu = document.getElementById(`menu-${roomId}`);
+  if (!menu) return;
 
-        function loadChatMessages() {
-            const box = document.getElementById("chat-messages");
-            if(unsubscribeChat) unsubscribeChat();
-            unsubscribeChat = db.collection("messages").where("roomId", "==", currentRoomId).orderBy("timestamp", "asc").onSnapshot(snap => {
-                box.innerHTML = "";
-                snap.forEach(doc => {
-                    const data = doc.data();
-                    const isMe = data.user === localStorage.getItem('sx_user');
-                    box.innerHTML += `
-                        <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
-                            <div class="flex items-end gap-2 ${isMe ? 'flex-row-reverse' : 'flex-row'}">
-                                <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-500">${data.user.charAt(0)}</div>
-                                <div class="${isMe ? 'bg-brand text-white' : 'bg-white border border-gray-200 text-gray-800'} px-4 py-2 rounded-2xl max-w-xs text-sm shadow-sm">
-                                    ${data.text}
-                                </div>
-                            </div>
-                        </div>`;
-                });
-                box.scrollTop = box.scrollHeight;
-            });
+  // close other menus
+  document.querySelectorAll('[id^="menu-dm_"]').forEach(m => {
+    if (m !== menu) m.classList.add("hidden");
+  });
+
+  menu.classList.toggle("hidden");
+}
+function deletePersonalChat(roomId) {
+  if (!confirm("Delete this chat permanently?")) return;
+
+  // 1️⃣ stop realtime listener
+  if (unsubscribeChat) {
+    unsubscribeChat();
+    unsubscribeChat = null;
+  }
+
+  // 2️⃣ delete all messages in this DM
+  db.collection("messages")
+    .where("roomId", "==", roomId)
+    .get()
+    .then(snapshot => {
+      if (snapshot.empty) {
+        console.log("No messages to delete");
+        return;
+      }
+
+      const batch = db.batch();
+      snapshot.forEach(doc => {
+        batch.delete(doc.ref);
+      });
+      return batch.commit();
+    })
+    .then(() => {
+      // 3️⃣ delete room metadata (VERY IMPORTANT)
+      return db.collection("chat_rooms").doc(roomId).delete();
+    })
+    .then(() => {
+      // 4️⃣ remove DM from sidebar
+      const dmEl = document.getElementById(`room-${roomId}`);
+      if (dmEl) dmEl.remove();
+
+      // 5️⃣ reset chat view
+      document.getElementById("chat-messages").innerHTML = "";
+      currentRoomId = "general";
+
+      alert("Chat deleted successfully");
+    })
+    .catch(err => {
+      console.error("Delete failed:", err);
+      alert("Failed to delete chat. Check console.");
+    });
+}
+
+function loadChatMessages() {
+  const box = document.getElementById("chat-messages");
+  if (!box) return;
+
+  if (unsubscribeChat) unsubscribeChat();
+  box.innerHTML = ""; // clear only when switching room
+
+  unsubscribeChat = db.collection("messages")
+    .where("roomId", "==", currentRoomId)
+    .onSnapshot(snapshot => {
+
+      snapshot.docChanges().forEach(change => {
+        if (change.type === "added") {
+          const data = change.doc.data();
+          const isMe = data.user === localStorage.getItem("sx_user");
+
+          const msgDiv = document.createElement("div");
+          msgDiv.className = `flex ${isMe ? "justify-end" : "justify-start"} mb-2`;
+
+          msgDiv.innerHTML = `
+            <div class="max-w-xs px-4 py-2 rounded-2xl text-sm shadow
+              ${isMe ? "bg-brand text-white" : "bg-white border"}">
+              ${data.text}
+            </div>
+          `;
+
+          box.appendChild(msgDiv);
+          box.scrollTop = box.scrollHeight;
         }
+      });
+
+    });
+}
 
         function sendChat() {
             const input = document.getElementById("chat-input");
@@ -907,20 +1089,38 @@ function messageProjectAuthor(author) {
     return;
   }
 
-  if (title) {
-    db.collection("questions").add({
-      title: title,
-      tag: tag,
-      author: author,
-      likes: 0,
-      likedBy: {},
-      timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    });
+  if (!title) return;
 
-    toggleModal('qa-modal');
-    document.getElementById('qa-title').value = "";
+  // ✏️ EDIT MODE
+  if (editingPostId) {
+    db.collection("questions").doc(editingPostId).update({
+      title,
+      tag
+    }).then(() => {
+      editingPostId = null;
+      toggleModal('qa-modal');
+      loadMyPosts();
+      document.getElementById('qa-title').value = "";
+      document.getElementById('qa-tag').value = "General";
+
+    });
+    return;
   }
+
+  // 🆕 NEW POST
+  db.collection("questions").add({
+    title,
+    tag,
+    author,
+    likes: 0,
+    likedBy: {},
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  toggleModal('qa-modal');
+  document.getElementById('qa-title').value = "";
 }
+
 function postProject() {
   const title = document.getElementById("proj-title").value.trim();
   const desc = document.getElementById("proj-desc").value.trim();
@@ -971,79 +1171,144 @@ function postProject() {
 
 
         // --- GITHUB API INTEGRATION ---
-        const githubUsername = "google"; // <--- CHANGE THIS TO YOUR GITHUB USERNAME
+            const username = dynamicUsername || "google";
+
+function extractGitHubUsername(input) {
+  if (!input) return "google";
+
+  // If user entered full URL
+  if (input.includes("github.com")) {
+    return input
+      .replace("https://", "")
+      .replace("http://", "")
+      .replace("github.com/", "")
+      .replace("www.github.com/", "")
+      .split("/")[0]
+      .trim();
+  }
+
+  // Already a username
+  return input.trim();
+}
 
         // --- GITHUB API INTEGRATION (UPDATED) ---
         
         // Accepts a username argument (e.g. from Firebase), defaults to 'google' if missing
         async function loadGitHubRepos(dynamicUsername) {
-            // Use the passed username, or fallback to 'google'
-            const targetUser = dynamicUsername || "google";
-            
-            const container = document.getElementById('github-repo-list');
-            const profileLink = document.getElementById('github-profile-link');
-            
-            // Update the "View on GitHub" link at the bottom of the card
-            if(profileLink) profileLink.href = `https://github.com/${targetUser}`;
+  const username = extractGitHubUsername(dynamicUsername);
+  const container = document.getElementById("github-repo-list");
+  const profileLink = document.getElementById("github-profile-link");
 
-            if(!container) return;
+  if (!container) return;
 
-            try {
-                // Fetch repos for the specific targetUser
-                const response = await fetch(
-  `https://api.github.com/users/${targetUser}/repos?sort=updated&per_page=4`,
-  {
-    headers: {
-      "Accept": "application/vnd.github+json",
-      "User-Agent": "SkillXchange-App"
+  profileLink.href = `https://github.com/${username}`;
+
+  const CACHE_KEY = `github_repos_${username}`;
+  const CACHE_TIME_KEY = `github_repos_time_${username}`;
+  const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+
+  const now = Date.now();
+  const cachedData = localStorage.getItem(CACHE_KEY);
+  const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+
+  // ✅ USE CACHE IF VALID
+  if (cachedData && cachedTime && now - cachedTime < CACHE_TTL) {
+    renderGitHubRepos(JSON.parse(cachedData));
+    return;
+  }
+
+  // ⏳ Show loading only if no cache
+  container.innerHTML = `
+    <p class="text-center text-gray-400 text-xs py-4">
+      Loading repositories...
+    </p>
+  `;
+
+  try {
+    const response = await fetch(
+      `https://api.github.com/users/${username}/repos?sort=updated&per_page=4`,
+      {
+        headers: {
+          "Accept": "application/vnd.github+json",
+          "User-Agent": "SkillXchange-App"
+        }
+      }
+    );
+
+    if (!response.ok) throw new Error("Rate limited");
+
+    const repos = await response.json();
+
+    // 💾 SAVE TO CACHE
+    localStorage.setItem(CACHE_KEY, JSON.stringify(repos));
+    localStorage.setItem(CACHE_TIME_KEY, now.toString());
+
+    renderGitHubRepos(repos);
+
+  } catch (err) {
+    // 🧠 FALLBACK TO OLD CACHE IF EXISTS
+    if (cachedData) {
+      renderGitHubRepos(JSON.parse(cachedData));
+    } else {
+      container.innerHTML = `
+        <div class="p-4 text-center">
+          <p class="text-xs text-gray-400">
+            GitHub rate limit reached.
+          </p>
+          <a href="https://github.com/${username}" 
+             target="_blank"
+             class="text-xs font-bold underline">
+            Visit Profile
+          </a>
+        </div>
+      `;
     }
   }
-);
+}
+function renderGitHubRepos(repos) {
+  const container = document.getElementById("github-repo-list");
+  if (!container) return;
 
-                
-                if (!response.ok) throw new Error('User not found');
-                
-                const repos = await response.json();
-                container.innerHTML = ''; // Clear loading text
+  container.innerHTML = "";
 
-                repos.forEach(repo => {
-                    const langColors = {
-                        'JavaScript': 'bg-yellow-400',
-                        'TypeScript': 'bg-blue-500',
-                        'HTML': 'bg-orange-500',
-                        'CSS': 'bg-blue-400',
-                        'Python': 'bg-green-500',
-                        'Java': 'bg-red-500'
-                    };
-                    const dotColor = langColors[repo.language] || 'bg-gray-400';
+  const langColors = {
+    JavaScript: "bg-yellow-400",
+    TypeScript: "bg-blue-500",
+    HTML: "bg-orange-500",
+    CSS: "bg-blue-400",
+    Python: "bg-green-500",
+    Java: "bg-red-500"
+  };
 
-                    const html = `
-                        <a href="${repo.html_url}" target="_blank" class="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer group transition block">
-                            <div class="flex justify-between items-start">
-                                <h4 class="text-sm font-bold text-brand group-hover:underline truncate pr-2">${repo.name}</h4>
-                                <div class="flex items-center text-gray-500 text-xs shrink-0">
-                                    <i class="far fa-star mr-1"></i> ${repo.stargazers_count}
-                                </div>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-1 mb-2 line-clamp-2">${repo.description || "No description provided."}</p>
-                            <div class="flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full ${dotColor}"></span>
-                                <span class="text-xs text-gray-500">${repo.language || "Code"}</span>
-                            </div>
-                        </a>
-                    `;
-                    container.innerHTML += html;
-                });
+  repos.forEach(repo => {
+    const dotColor = langColors[repo.language] || "bg-gray-400";
 
-            } catch (error) {
-                container.innerHTML = `
-                    <div class="p-4 text-center">
-                        <p class="text-xs text-red-500 mb-2">Could not load repos.</p>
-                        <a href="https://github.com/${targetUser}" target="_blank" class="text-xs font-bold underline">Visit Profile</a>
-                    </div>
-                `;
-            }
-        }
+    container.innerHTML += `
+      <a href="${repo.html_url}" target="_blank"
+         class="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 block transition">
+        <div class="flex justify-between items-start">
+          <h4 class="text-sm font-bold text-brand truncate pr-2">
+            ${repo.name}
+          </h4>
+          <div class="flex items-center text-gray-500 text-xs">
+  <i class="far fa-star mr-1"></i>
+  ${repo.stargazers_count}
+</div>
+        </div>
+        <p class="text-xs text-gray-500 mt-1 mb-2 line-clamp-2">
+          ${repo.description || "No description provided."}
+        </p>
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full ${dotColor}"></span>
+          <span class="text-xs text-gray-500">
+            ${repo.language || "Code"}
+          </span>
+        </div>
+      </a>
+    `;
+  });
+}
+
     </script>
     <div id="project-modal" class="fixed inset-0 bg-slate-900/50 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg transform transition-all">
