@@ -97,20 +97,21 @@
         G
       </div>
       <div class="ml-3">
-        <p id="user-name-display"
-           class="text-sm font-semibold text-gray-700">
-          Guest
-        </p>
+       <p id="user-name-display"
+   class="text-sm font-semibold text-gray-700 hidden">
+</p>
+
         <p class="text-xs text-green-500">● Online</p>
       </div>
     </div>
 
     <!-- Logout button -->
     <button id="sidebar-logout-btn"
-            onclick="logout()"
-            class="text-xs text-red-500 font-semibold hidden">
-      Logout
-    </button>
+        onclick="logout()"
+        class="text-xs text-red-500 font-semibold hidden !hidden">
+  Logout
+</button>
+
   </div>
 </div>
 
@@ -157,18 +158,28 @@
                                 </div>
                             </div>
                             <div class="text-center px-4 pb-4 pt-2 border-b border-gray-200">
-                                <h3 class="font-bold text-gray-900 text-sm hover:underline cursor-pointer" id="card-user-name">Guest</h3>
-                            </div>
+                              <h3
+  id="card-user-name"
+  onclick="window.location.href='profile.html'"
+  class="font-bold text-gray-900 text-sm hover:underline cursor-pointer">
+</h3>
+    </div>
                             <div class="py-3">
-                                <div class="px-4 py-1 hover:bg-gray-100 cursor-pointer flex justify-between items-center">
-                                    <div class="text-xs text-gray-500 font-semibold">Profile viewers</div>
-                                    <div class="text-xs text-blue-600 font-bold">42</div>
-                                </div>
-                                <div class="px-4 py-1 hover:bg-gray-100 cursor-pointer flex justify-between items-center">
-                                    <div class="text-xs text-gray-500 font-semibold">Post impressions</div>
-                                    <div class="text-xs text-blue-600 font-bold">120</div>
-                                </div>
-                            </div>
+  <div class="px-4 py-2 flex items-center gap-2">
+    <i class="fas fa-university text-gray-400 text-xs"></i>
+    <span id="card-user-university" class="text-xs text-gray-600 font-semibold">
+      —
+    </span>
+  </div>
+
+  <div class="px-4 py-2 flex items-center gap-2">
+    <i class="fas fa-envelope text-gray-400 text-xs"></i>
+    <span id="card-user-email" class="text-xs text-gray-600 font-semibold">
+      —
+    </span>
+  </div>
+</div>
+
                             <div onclick="openMyPosts(this)"
      class="border-t border-gray-200 px-4 py-3 hover:bg-gray-100 cursor-pointer flex items-center gap-2">
   <i class="fas fa-pencil-alt text-gray-500 text-xs"></i>
@@ -457,52 +468,94 @@ auth.onAuthStateChanged(async (user) => {
   const authSection = document.getElementById("header-auth-section");
   const logoutBtn = document.getElementById("sidebar-logout-btn");
 
+  const nameEl = document.getElementById("user-name-display");
+  const avatarEl = document.getElementById("user-avatar");
+
+  const uniEl = document.getElementById("card-user-university");
+  const emailEl = document.getElementById("card-user-email");
+
+  // 🔁 CLEAR HEADER FIRST (prevents duplicates / blank state)
+  authSection.innerHTML = "";
+
   if (user) {
-    // USER LOGGED IN
     const doc = await db.collection("users").doc(user.uid).get();
     if (!doc.exists) return;
 
     const data = doc.data();
     const fullName = `${data.firstName} ${data.lastName}`;
+    const initial = fullName.charAt(0).toUpperCase();
 
     localStorage.setItem("sx_user", fullName);
 
+    // 🔹 SIDEBAR USER
+    nameEl.classList.remove("hidden");
+    avatarEl.classList.remove("hidden");
     updateUserUI(fullName);
-    loadGitHubRepos(data.githubLink);
 
-    const myProjectsPage = document.getElementById("my-projects");
-  if (myProjectsPage && myProjectsPage.classList.contains("active-page")) {
-    loadMyProjects();
-  }
+    // 🔹 LEFT CARD DETAILS
+    if (uniEl) uniEl.innerText = data.university || "University not set";
+    if (emailEl) emailEl.innerText = user.email || "Email not available";
 
-    // Show sidebar logout
-    logoutBtn.classList.remove("hidden");
+    // 🔹 HEADER USER (RIGHT CORNER) ✅
+    authSection.innerHTML = `
+  <div class="relative">
 
-    // Replace header login buttons
-   authSection.innerHTML = `
-  <div
-    onclick="window.location.href='profile.html'"
-    class="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 px-3 py-1.5 rounded-lg transition">
+    <!-- USER BUTTON -->
+    <button
+      onclick="toggleProfileMenu(event)"
+      class="flex items-center space-x-3 hover:bg-gray-50 px-3 py-1.5 rounded-lg transition">
 
-    <div class="text-right hidden md:block">
-      <p class="text-sm font-bold text-gray-700">${fullName}</p>
-    </div>
+      <div class="text-right hidden md:block">
+        <p class="text-sm font-bold text-gray-700">${fullName}</p>
+      </div>
 
-    <div class="w-9 h-9 rounded-full bg-brand text-white flex items-center justify-center font-bold">
-      ${fullName.charAt(0)}
+      <div class="w-9 h-9 rounded-full bg-brand text-white flex items-center justify-center font-bold">
+        ${initial}
+      </div>
+    </button>
+
+    <!-- DROPDOWN -->
+    <div
+      id="profile-menu"
+      class="hidden absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg z-50">
+
+    <button
+  onclick="window.location.href='profile.html'"
+  class="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100">
+  <i class="fas fa-user text-gray-600"></i>
+  <span>Profile</span>
+</button>
+
+<button
+  onclick="logout()"
+  class="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+  <i class="fas fa-right-from-bracket"></i>
+  <span>Sign Out</span>
+</button>
+
+
+
+
     </div>
   </div>
 `;
 
+
+    logoutBtn.classList.remove("hidden");
+    loadGitHubRepos(data.githubLink);
+
   } else {
-    // GUEST MODE
+    // 🔸 GUEST MODE
     localStorage.removeItem("sx_user");
 
+    nameEl.classList.remove("hidden");
+    avatarEl.classList.remove("hidden");
     updateUserUI("Guest");
-    loadGitHubRepos("google");
 
-    logoutBtn.classList.add("hidden");
+    if (uniEl) uniEl.innerText = "";
+    if (emailEl) emailEl.innerText = "";
 
+    // 🔹 HEADER GUEST BUTTONS
     authSection.innerHTML = `
       <button onclick="location.href='login.html'"
               class="text-sm font-semibold text-gray-600 hover:text-brand">
@@ -513,8 +566,12 @@ auth.onAuthStateChanged(async (user) => {
         Sign up
       </button>
     `;
+
+    logoutBtn.classList.add("hidden");
   }
 });
+
+
 
 function toggleLike(postId) {
   const currentUser = localStorage.getItem("sx_user");
@@ -867,6 +924,14 @@ function editPost(id, title, tag) {
 
   toggleModal("qa-modal");
 }
+function toggleProfileMenu(event) {
+  event.stopPropagation();
+
+  const menu = document.getElementById("profile-menu");
+  if (!menu) return;
+
+  menu.classList.toggle("hidden");
+}
 
 
         // 3. PAGE SWITCHER
@@ -899,20 +964,19 @@ function editPost(id, title, tag) {
         }
 
         // 4. UTILS
-        function updateUserUI(name) {
+       function updateUserUI(name) {
   const initial = name.charAt(0).toUpperCase();
 
-  // Sidebar (bottom-left)
   document.getElementById("user-name-display").innerText = name;
   document.getElementById("user-avatar").innerText = initial;
 
-  // Profile card (Explore left)
   const cardName = document.getElementById("card-user-name");
   const cardAvatar = document.getElementById("card-user-avatar");
 
   if (cardName) cardName.innerText = name;
   if (cardAvatar) cardAvatar.innerText = initial;
 }
+
 
 
         function toggleModal(id) {
@@ -1310,6 +1374,7 @@ function renderGitHubRepos(repos) {
 }
 
     </script>
+    
     <div id="project-modal" class="fixed inset-0 bg-slate-900/50 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg transform transition-all">
         <div class="p-6 border-b border-gray-100 flex justify-between items-center">
@@ -1340,4 +1405,3 @@ function renderGitHubRepos(repos) {
 
 </body>
 </html>
-
