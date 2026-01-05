@@ -1,33 +1,32 @@
-# SkillXCamp
+# SkillXchange
 
-SkillXCamp is a **college-exclusive digital collaboration platform** that allows students to exchange skills, ask for help, and collaborate on projects — all in one focused environment.
+SkillXchange is a **college-exclusive digital collaboration platform** designed to help students exchange skills, ask for academic or technical help, and collaborate on projects — all in one focused environment.
 
-Unlike generic social platforms, SkillXCamp is designed **only for college communities** and keeps collaboration simple and distraction-free.
+It brings together the useful aspects of platforms like LinkedIn, Discord, and social media, but is built **specifically for a single college community** and kept simple.
 
 ---
 
 ## 🚩 Problem
 
 In colleges today:
-- Students struggle to find academic or technical help
+- Students struggle to find the right person for help
 - Seniors and mentors are difficult to reach
-- Collaboration is scattered across multiple platforms
-- Existing tools are either noisy, complex, or too formal
+- Project collaboration is unstructured
+- Communication is scattered across multiple platforms
 
-There is **no single, focused platform** built specifically for college-level collaboration.
+Existing tools are either noisy, overly complex, or not designed for student collaboration.
 
 ---
 
 ## 💡 Solution
 
-SkillXCamp provides:
-- A **college-only** collaboration space
-- Skill exchange without money
-- Structured discussions and project discovery
-- Peer-to-peer and senior–junior interaction
-- Real-time communication in one place
+SkillXchange provides a **centralized, college-only platform** where students can:
+- Exchange skills without money
+- Ask questions and get help
+- Collaborate on projects and hackathons
+- Interact with peers and seniors in one place
 
-It combines the useful aspects of LinkedIn, Facebook, and Discord — without their complexity.
+The focus is on learning, collaboration, and community — not social noise.
 
 ---
 
@@ -37,7 +36,7 @@ It combines the useful aspects of LinkedIn, Facebook, and Discord — without th
 - Explore / Community Feed  
 - Project & Hackathon Collaboration  
 - Real-time Messaging  
-- Mentorship Discovery within the college  
+- Senior–Junior Mentorship Discovery  
 
 ---
 
@@ -45,27 +44,27 @@ It combines the useful aspects of LinkedIn, Facebook, and Discord — without th
 
 1. Students sign up using their college email  
 2. Users post skills, questions, or project ideas  
-3. Peers and seniors connect directly  
-4. Collaboration happens in real time  
+3. Peers and seniors discover and connect  
+4. Collaboration happens through real-time chat and discussions  
 
 ---
 
-## 🛠 Tech Stack
+## 🛠 Technology Stack
 
 - **Frontend:** HTML, CSS, Tailwind  
 - **Backend:** Firebase  
 - **Authentication:** Firebase Auth  
 - **Database:** Firestore  
-- **Real-time updates:** Firebase services  
+- **Real-time features:** Firebase services  
 
 ---
 
-## 🎯 Why SkillXCamp?
+## 🎯 Why SkillXchange?
 
-- Designed specifically for college students  
-- Solves a real, everyday problem  
+- Built specifically for college students  
+- Solves a real and common problem  
 - Simple, practical, and demo-ready  
-- Can scale across departments and colleges  
+- Designed to scale across departments and colleges  
 
 ---
 
@@ -74,17 +73,17 @@ It combines the useful aspects of LinkedIn, Facebook, and Discord — without th
 - Notes and shared resources  
 - Notifications  
 - Mobile-friendly version  
-- Advanced search and discovery  
-- College-wide and inter-college expansion  
+- Advanced discovery and filtering  
+- Expansion to multiple colleges  
 
 ---
 
 ## 📌 Project Status
 
-This project was built as part of a hackathon and demonstrates a working prototype with real-time collaboration features.
+SkillXchange is a hackathon project showcasing a functional prototype with real-time collaboration features and a clean, scalable structure.
 
 ---
 
 ## 📄 License
 
-This project is open-source and available under the MIT License.
+This project is open-source and licensed under the MIT License.
