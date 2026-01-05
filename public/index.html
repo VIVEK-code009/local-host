@@ -284,41 +284,31 @@
 
 
             <div id="seniors" class="page-section overflow-y-auto h-full p-6 md:p-8">
-                <div class="max-w-6xl mx-auto">
-                    <div class="flex justify-between items-end mb-8">
-                        <div>
-                            <h1 class="text-2xl font-bold text-gray-900">Senior Mentors</h1>
-                            <p class="text-gray-500">Get career guidance from final year students.</p>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <div class="bg-white p-6 rounded-xl border border-gray-200 hover-card transition text-center">
-                            <div class="w-20 h-20 bg-gray-200 rounded-full mx-auto mb-4 overflow-hidden">
-                                <img src="https://ui-avatars.com/api/?name=John+Doe&background=random" class="w-full h-full object-cover">
-                            </div>
-                            <h3 class="font-bold text-lg">John Doe</h3>
-                            <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">Batch of 2024</span>
-                            <p class="text-sm text-gray-500 mt-2 mb-4">Placed at: <span class="font-semibold text-gray-700">Google</span></p>
-                            <div class="flex justify-center gap-2 mb-6">
-                                <span class="text-xs bg-gray-100 px-2 py-1 rounded">DSA</span>
-                                <span class="text-xs bg-gray-100 px-2 py-1 rounded">System Design</span>
-                            </div>
-                            <button onclick="openDM('John Doe')" class="w-full bg-brand text-white py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-brandDark transition">Connect</button>
-                        </div>
-                        <div class="bg-white p-6 rounded-xl border border-gray-200 hover-card transition text-center">
-                            <div class="w-20 h-20 bg-gray-200 rounded-full mx-auto mb-4 overflow-hidden">
-                                <img src="https://ui-avatars.com/api/?name=Sarah+Smith&background=random" class="w-full h-full object-cover">
-                            </div>
-                            <h3 class="font-bold text-lg">Sarah Smith</h3>
-                            <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">Batch of 2025</span>
-                            <p class="text-sm text-gray-500 mt-2 mb-4">Intern at: <span class="font-semibold text-gray-700">Amazon</span></p>
-                            <div class="flex justify-center gap-2 mb-6">
-                                <span class="text-xs bg-gray-100 px-2 py-1 rounded">Web Dev</span>
-                                <span class="text-xs bg-gray-100 px-2 py-1 rounded">Interview Prep</span>
-                            </div>
-                            <button onclick="openDM('Sarah Smith')" class="w-full bg-brand text-white py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-brandDark transition">Connect</button>
-                        </div>
-                    </div>
+  <div class="max-w-6xl mx-auto">
+
+    <div class="flex justify-between items-end mb-8">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Senior Mentors</h1>
+        <p class="text-gray-500">
+          Get career guidance from final year students.
+        </p>
+      </div>
+    </div>
+
+    <!-- ✅ ONLY THIS CONTAINER -->
+    <div
+      id="seniors-container"
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+    >
+      <p class="text-gray-400 text-center col-span-full">
+        Loading senior profiles...
+      </p>
+    </div>
+
+  </div>
+</div>
+
+
                 </div>
             </div>
 
@@ -544,7 +534,7 @@ auth.onAuthStateChanged(async (user) => {
 
     logoutBtn.classList.remove("hidden");
     loadGitHubRepos(data.githubLink);
-
+    loadSavedDMs();
   } else {
     // 🔸 GUEST MODE
     localStorage.removeItem("sx_user");
@@ -933,36 +923,86 @@ function toggleProfileMenu(event) {
 
   menu.classList.toggle("hidden");
 }
+// 1. NEW FUNCTION TO LOAD SIDEBAR DMs
+function loadSavedDMs() {
+    const user = localStorage.getItem("sx_user");
+    if (!user || user === "Guest") return;
 
+    const dmList = document.getElementById('dm-list');
+    
+    // Listen to chat_rooms where 'participants' contains the current user
+    db.collection("chat_rooms")
+        .where("participants", "array-contains", user)
+        .onSnapshot(snapshot => {
+            // Clear list first (keep the "No messages" text hidden/shown logic later)
+            dmList.innerHTML = ''; 
+
+            if (snapshot.empty) {
+                dmList.innerHTML = '<p class="text-xs text-gray-400 px-3 italic" id="no-dms-msg">No recent messages</p>';
+                return;
+            }
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const roomId = doc.id;
+                
+                // Find the "other" person in the chat
+                const otherUser = data.participants.find(p => p !== user) || "Unknown";
+
+                // Render the Sidebar Item
+                dmList.innerHTML += `
+                  <div id="room-${roomId}" class="chat-room-item flex items-center justify-between px-3 py-2 text-sm text-gray-600">
+                    <div onclick="switchRoom('${roomId}', '${otherUser}')" class="flex items-center gap-2 cursor-pointer w-full">
+                      <div class="w-2 h-2 rounded-full bg-green-500 shrink-0"></div>
+                      <span class="truncate">${otherUser}</span>
+                    </div>
+                    
+                    <div class="relative shrink-0">
+                      <button type="button" onclick="event.stopPropagation(); toggleDMMenu('${roomId}')" class="px-2 text-gray-500 hover:text-gray-800">⋮</button>
+                      <div id="menu-${roomId}" class="hidden absolute right-0 mt-1 bg-white border rounded shadow-md z-50 w-24">
+                        <button onclick="deletePersonalChat('${roomId}')" class="block w-full px-4 py-2 text-left text-sm text-red-500 hover:bg-gray-100">Delete</button>
+                      </div>
+                    </div>
+                  </div>
+                `;
+            });
+            
+            // Re-highlight active room if it exists
+            if(currentRoomId && document.getElementById(`room-${currentRoomId}`)) {
+                document.getElementById(`room-${currentRoomId}`).classList.add('active');
+            }
+        });
+}
 
         // 3. PAGE SWITCHER
         function switchPage(pageId, btnElement) {
-            document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active-page'));
-            document.getElementById(pageId).classList.add('active-page');
-            document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));
-            if(btnElement) btnElement.classList.add('active');
+  document.querySelectorAll('.page-section')
+    .forEach(el => el.classList.remove('active-page'));
 
-            const titles = {
-                'explore': 'Explore Feed',
-                'projects': 'Projects', 
-                'my-projects': 'My Projects',
-                'my-posts': 'My Posts',
-                'seniors': 'Senior Mentors',
-                'chat': 'Messages'
-            };
-            document.getElementById('header-title').innerText = titles[pageId];
+  document.getElementById(pageId).classList.add('active-page');
 
-            const actionBtn = document.getElementById('action-btn');
-            if(actionBtn) {
-                 if(pageId === 'explore') {
-                    actionBtn.style.display = 'block';
-                    actionBtn.innerText = '+ New Post';
-                    actionBtn.onclick = () => toggleModal('qa-modal');
-                } else {
-                    actionBtn.style.display = 'none';
-                }
-            }
-        }
+  document.querySelectorAll('.sidebar-link')
+    .forEach(el => el.classList.remove('active'));
+
+  if (btnElement) btnElement.classList.add('active');
+
+  // ✅ LOAD SENIORS WHEN PAGE OPENS
+  if (pageId === "seniors") {
+    loadSeniorProfiles();
+  }
+
+  const titles = {
+    explore: 'Explore Feed',
+    projects: 'Projects',
+    'my-projects': 'My Projects',
+    'my-posts': 'My Posts',
+    seniors: 'Senior Mentors',
+    chat: 'Messages'
+  };
+
+  document.getElementById('header-title').innerText = titles[pageId];
+}
+
 
         // 4. UTILS
        function updateUserUI(name) {
@@ -998,51 +1038,36 @@ function toggleProfileMenu(event) {
             loadChatMessages();
         }
 
-        function openDM(targetUser) {
-            const currentUser = localStorage.getItem('sx_user');
-            if(targetUser === currentUser) return alert("You cannot message yourself.");
-            const users = [currentUser, targetUser].sort();
-            const roomId = `dm_${users[0]}_${users[1]}`;
-            
-            const dmList = document.getElementById('dm-list');
-            if(!document.getElementById(`room-${roomId}`)) {
-                document.getElementById('no-dms-msg').style.display = 'none';
-                dmList.innerHTML += `
-  <div id="room-${roomId}"
-       class="chat-room-item flex items-center justify-between px-3 py-2 text-sm text-gray-600">
+        // 2. UPDATED OPEN DM FUNCTION
+function openDM(targetUser) {
+    const currentUser = localStorage.getItem('sx_user');
+    
+    if(!currentUser || currentUser === "Guest") {
+        alert("Please log in to chat.");
+        return;
+    }
+    if(targetUser === currentUser) {
+        alert("You cannot message yourself.");
+        return;
+    }
 
-    <div onclick="switchRoom('${roomId}', '${targetUser}')"
-         class="flex items-center gap-2 cursor-pointer">
-      <div class="w-2 h-2 rounded-full bg-green-500"></div>
-      ${targetUser}
-    </div>
+    // Create unique ID alphabetically so UserA->UserB and UserB->UserA match
+    const users = [currentUser, targetUser].sort();
+    const roomId = `dm_${users[0]}_${users[1]}`;
 
-    <!-- 3 DOTS -->
-    <div class="relative">
-      <button type="button"
-              onclick="event.stopPropagation(); toggleDMMenu('${roomId}')"
-              class="px-2 text-gray-500 hover:text-gray-800">
-        ⋮
-      </button>
-
-      <!-- DELETE MENU -->
-      <div id="menu-${roomId}"
-           class="hidden absolute right-0 mt-1 bg-white border rounded shadow-md z-50">
-        <button
-          onclick="deletePersonalChat('${roomId}')"
-          class="block w-full px-4 py-2 text-left text-sm text-red-500 hover:bg-gray-100">
-          Delete
-        </button>
-      </div>
-    </div>
-
-  </div>
-`;
-
-            }
-            switchPage('chat', document.querySelector("div[onclick=\"switchPage('chat', this)\"]"));
-            switchRoom(roomId, targetUser);
-        }
+    // SAVE TO FIREBASE (This triggers the sidebar update automatically)
+    db.collection("chat_rooms").doc(roomId).set({
+        roomId: roomId,
+        participants: [currentUser, targetUser],
+        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true }) // merge: true prevents overwriting if it exists
+    .then(() => {
+        // Switch to the chat view
+        switchPage('chat', document.querySelector("div[onclick=\"switchPage('chat', this)\"]"));
+        switchRoom(roomId, targetUser);
+    })
+    .catch(err => console.error("Error creating chat room:", err));
+}
 function toggleDMMenu(roomId) {
   const menu = document.getElementById(`menu-${roomId}`);
   if (!menu) return;
@@ -1230,6 +1255,71 @@ function postProject() {
   document.getElementById("proj-title").value = "";
   document.getElementById("proj-desc").value = "";
   document.getElementById("proj-tags").value = "";
+}
+function openUserProfile(userId) {
+  window.location.href = `profile.html?uid=${userId}`;
+}
+function loadSeniorProfiles() {
+  const container = document.getElementById("seniors-container");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  db.collection("users")
+    .get()
+    .then(snapshot => {
+      if (snapshot.empty) {
+        container.innerHTML = `
+          <p class="text-gray-400 text-center col-span-full">
+            No users found.
+          </p>`;
+        return;
+      }
+
+      snapshot.forEach(doc => {
+        const user = doc.data();
+        const fullName = `${user.firstName || ""} ${user.lastName || ""}`.trim();
+        const initial = fullName.charAt(0).toUpperCase();
+
+        container.innerHTML += `
+          <div class="bg-white p-6 rounded-xl border border-gray-200 hover-card transition text-center">
+
+            <div
+              onclick="openUserProfile('${doc.id}')"
+              class="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center
+                     bg-brand text-white text-2xl font-bold cursor-pointer hover:opacity-90">
+              ${initial || "U"}
+            </div>
+
+            <h3 class="font-bold text-lg">
+              ${fullName || "Unnamed User"}
+            </h3>
+
+            <p class="text-xs text-gray-500 mt-1">
+              ${user.university || "University not specified"}
+            </p>
+
+            <p class="text-sm text-gray-500 mt-2 mb-4">
+              ${user.role || "Student"}
+            </p>
+
+            <button
+              onclick="openDM('${fullName}')"
+              class="w-full bg-brand text-white py-2 rounded-lg text-sm font-bold hover:bg-brandDark transition">
+              Connect
+            </button>
+
+          </div>
+        `;
+      });
+    })
+    .catch(err => {
+      console.error(err);
+      container.innerHTML = `
+        <p class="text-red-500 text-center col-span-full">
+          Failed to load users.
+        </p>`;
+    });
 }
 
 

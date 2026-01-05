@@ -12,6 +12,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+
 
     <script>
         tailwind.config = {
@@ -231,22 +233,46 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
         let currentUser = null;
+// 🔹 read profile uid from URL (if exists)
+const params = new URLSearchParams(window.location.search);
+const profileUid = params.get("uid"); // null if not provided
 
         // 2. LOAD DATA
         auth.onAuthStateChanged(async (user) => {
-            if (user) {
-                currentUser = user;
-                const doc = await db.collection("users").doc(user.uid).get();
-                if (doc.exists) {
-                    const data = doc.data();
-                    updateUI(data, user.email);
-                    loadPosts(data.firstName + " " + data.lastName);
-                    loadProjects(data.firstName + " " + data.lastName);
-                }
-            } else {
-                window.location.href = "login.html";
-            }
-        });
+
+    // ❌ no login and no profile uid
+    if (!user && !profileUid) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    // 🔑 decide whose profile to load
+    const uidToLoad = profileUid || user.uid;
+
+    // store logged-in user separately
+    currentUser = user || null;
+
+    const doc = await db.collection("users").doc(uidToLoad).get();
+    if (!doc.exists) {
+        alert("User profile not found");
+        return;
+    }
+
+    const data = doc.data();
+
+    // update profile UI
+    updateUI(data, user?.email || "");
+
+    // load posts & projects ONLY for owner
+    if (!profileUid || profileUid === user?.uid) {
+        loadPosts();
+        loadProjects(`${data.firstName} ${data.lastName}`);
+    } else {
+        // hide edit button when viewing others
+        document.querySelector("button[onclick='toggleEditModal()']").style.display = "none";
+    }
+});
+
 
         function updateUI(data, email) {
             const fullName = `${data.firstName} ${data.lastName}`;
