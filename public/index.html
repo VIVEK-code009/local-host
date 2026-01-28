@@ -466,10 +466,16 @@ if (!userDoc.exists) return;
 const userData = userDoc.data();
 
 // 🔥 ADMIN AUTO REDIRECT
-if (userData.isAdmin === true && !location.pathname.includes("admin.html")) {
+const skip = sessionStorage.getItem("skipAdminRedirect");
+
+if (userData.isAdmin === true && !skip) {
   window.location.href = "admin.html";
   return;
 }
+
+// Clear flag after successful load
+sessionStorage.removeItem("skipAdminRedirect");
+
 
                 const doc = await db.collection("users").doc(user.uid).get();
                 if (!doc.exists) return;
