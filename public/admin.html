@@ -1,53 +1,172 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="transition-colors duration-300">
 <head>
   <meta charset="UTF-8">
-  <title>SkillXchange | Admin Panel</title>
+  <title>SkillXchange | Admin Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    tailwind.config = {
+        darkMode: 'class',
+        theme: {
+            extend: {
+                fontFamily: { sans: ['Inter', 'sans-serif'] },
+                colors: {
+                    brand: '#6366f1',
+                    brandDark: '#4f46e5',
+                    brandLight: '#e0e7ff',
+                    bgMain: '#f9fafb',
+                }
+            }
+        }
+    }
+  </script>
+
+  <style>
+  body {
+    background-color: #f9fafb; /* bg-bgMain */
+    transition: background-color 0.3s ease;
+  }
+
+  html.dark body {
+    background-color: #111827; /* gray-900 */
+  }
+
+  .card {
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    transition: box-shadow 0.2s ease, background-color 0.3s ease, border-color 0.3s ease;
+  }
+
+  html.dark .card {
+    background-color: #1f2937;
+    border-color: #374151;
+  }
+
+  .btn-icon {
+    padding: 0.5rem;
+    border-radius: 9999px;
+    transition: background-color 0.2s ease;
+  }
+
+  .btn-icon:hover {
+    background-color: #f3f4f6;
+  }
+
+  html.dark .btn-icon:hover {
+    background-color: #374151;
+  }
+</style>
+
 </head>
 
-<body class="bg-gray-900 text-gray-100 min-h-screen">
+<body class="text-gray-800 dark:text-gray-100 font-sans min-h-screen flex flex-col">
 
-<header class="p-6 border-b border-gray-700 flex justify-between items-center">
-  <h1 class="text-2xl font-bold text-indigo-400">Admin Dashboard</h1>
-  <button onclick="logout()" class="bg-red-600 px-4 py-2 rounded-lg font-bold">Logout</button>
+<header class="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-6 lg:px-10 shadow-sm z-20 sticky top-0 transition-colors duration-300">
+  <div class="flex items-center gap-3">
+    <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center text-white font-bold shadow-md">A</div>
+    <h1 class="text-xl font-bold tracking-tight text-gray-900 dark:text-white">Admin Dashboard</h1>
+  </div>
+
+  <div class="flex items-center space-x-4">
+    <button onclick="toggleTheme()" class="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-yellow-400 transition hover:bg-gray-200 dark:hover:bg-gray-600">
+        <i class="fas fa-moon dark:hidden"></i>
+        <i class="fas fa-sun hidden dark:block"></i>
+    </button>
+
+    <button onclick="returnToApp()" class="hidden md:flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:text-brand dark:hover:text-white transition">
+        <i class="fas fa-external-link-alt"></i> Return to App
+    </button>
+
+    <button onclick="logout()" class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-100 dark:hover:bg-red-900/40 transition">
+        <i class="fas fa-sign-out-alt mr-1"></i> Logout
+    </button>
+  </div>
 </header>
 
-<main class="p-8 space-y-12">
+<main class="flex-1 p-6 lg:p-10 max-w-7xl mx-auto w-full space-y-12">
 
-  <!-- USERS -->
   <section>
-    <h2 class="text-xl font-bold mb-4">All Users</h2>
-    <div id="users" class="grid md:grid-cols-3 gap-4"></div>
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <i class="fas fa-users text-brand"></i> Registered Users
+        </h2>
+        <span class="text-xs font-semibold bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full" id="user-count">0</span>
+    </div>
+    <div id="users" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="col-span-full text-center py-10 text-gray-400 animate-pulse">Loading users...</div>
+    </div>
   </section>
 
-  <!-- POSTS -->
+  <hr class="border-gray-200 dark:border-gray-800">
+
   <section>
-    <h2 class="text-xl font-bold mb-4">All Posts</h2>
-    <div id="posts" class="space-y-3"></div>
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <i class="fas fa-comments text-brand"></i> Community Posts
+        </h2>
+        <span class="text-xs font-semibold bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full" id="post-count">0</span>
+    </div>
+    <div id="posts" class="space-y-4">
+        <div class="text-center py-10 text-gray-400 animate-pulse">Loading posts...</div>
+    </div>
   </section>
 
-  <!-- PROJECTS -->
+  <hr class="border-gray-200 dark:border-gray-800">
+
   <section>
-    <h2 class="text-xl font-bold mb-4">All Projects</h2>
-    <div id="projects" class="grid md:grid-cols-2 gap-4"></div>
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <i class="fas fa-layer-group text-brand"></i> Projects
+        </h2>
+        <span class="text-xs font-semibold bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full" id="project-count">0</span>
+    </div>
+    <div id="projects" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="col-span-full text-center py-10 text-gray-400 animate-pulse">Loading projects...</div>
+    </div>
   </section>
 
 </main>
 
 <script>
+// --- THEME LOGIC (Matches index.html) ---
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'dark') {
+  document.documentElement.classList.add('dark');
+} else {
+  document.documentElement.classList.remove('dark');
+}
+
+function toggleTheme() {
+    const html = document.documentElement;
+    if (html.classList.contains('dark')) {
+        html.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+    } else {
+        html.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+    }
+}
+
+// --- FIREBASE CONFIG ---
 const firebaseConfig = {
   apiKey: "AIzaSyCLafxMmbSanvmgP9KPvWXO7968BgkSMAQ",
   authDomain: "skillxchange-93fac.firebaseapp.com",
   projectId: "skillxchange-93fac"
 };
 
-firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 const auth = firebase.auth();
 const db = firebase.firestore();
 
@@ -57,52 +176,113 @@ auth.onAuthStateChanged(async user => {
     location.href = "login.html";
     return;
   }
+  
+  // Check Admin Status
   const doc = await db.collection("users").doc(user.uid).get();
   if (!doc.exists || doc.data().isAdmin !== true) {
-    alert("Access denied");
-    location.href = "home.html";
+    alert("Access denied: You do not have administrator privileges.");
+    location.href = "index.html"; // Redirect to main app
   }
 });
 
-/* USERS */
+/* 1. FETCH USERS */
 db.collection("users").onSnapshot(snap => {
   const box = document.getElementById("users");
+  const countEl = document.getElementById("user-count");
   box.innerHTML = "";
+  countEl.innerText = snap.size;
+
+  if(snap.empty) {
+      box.innerHTML = `<p class="col-span-full text-center text-gray-400">No users found.</p>`;
+      return;
+  }
+
   snap.forEach(doc => {
     const u = doc.data();
+    const initials = (u.firstName && u.firstName[0]) ? u.firstName[0].toUpperCase() : 'U';
+    
     box.innerHTML += `
-      <div class="bg-gray-800 p-4 rounded-xl">
-        <p class="font-bold">${u.firstName || ""} ${u.lastName || ""}</p>
-        <p class="text-xs text-gray-400">${u.email || ""}</p>
-        <button onclick="deleteUser('${doc.id}')" class="mt-2 bg-red-600 w-full py-1 rounded">Delete</button>
+      <div class="card p-5 flex items-center justify-between group">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-brand to-purple-600 text-white flex items-center justify-center font-bold text-lg shadow">
+                ${initials}
+            </div>
+            <div>
+                <p class="font-bold text-gray-800 dark:text-white">${u.firstName || "Unknown"} ${u.lastName || ""}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">${u.email || "No email"}</p>
+                <span class="inline-block mt-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-[10px] rounded text-gray-500 uppercase tracking-wide">
+                    ${u.role || "Student"}
+                </span>
+            </div>
+        </div>
+        <button onclick="deleteUser('${doc.id}')" title="Delete User" class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-500 hover:text-white transition shadow-sm">
+            <i class="fas fa-trash-alt text-sm"></i>
+        </button>
       </div>
     `;
   });
 });
 
-/* POSTS */
+/* 2. FETCH POSTS */
 db.collection("questions").onSnapshot(snap => {
   const box = document.getElementById("posts");
+  const countEl = document.getElementById("post-count");
   box.innerHTML = "";
+  countEl.innerText = snap.size;
+
+  if(snap.empty) {
+      box.innerHTML = `<p class="text-center text-gray-400 py-4">No posts found.</p>`;
+      return;
+  }
+
   snap.forEach(doc => {
+    const p = doc.data();
     box.innerHTML += `
-      <div class="bg-gray-800 p-4 rounded-lg flex justify-between">
-        <span>${doc.data().title}</span>
-        <button onclick="deletePost('${doc.id}')" class="text-red-400">Delete</button>
+      <div class="card p-4 flex justify-between items-center">
+        <div class="flex-1 pr-4">
+            <div class="flex items-center gap-2 mb-1">
+                <span class="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 text-xs rounded font-bold">${p.tag || "General"}</span>
+                <span class="text-xs text-gray-400">• by ${p.author || "Unknown"}</span>
+            </div>
+            <p class="font-medium text-gray-800 dark:text-gray-200 line-clamp-1">${p.title}</p>
+        </div>
+        <button onclick="deletePost('${doc.id}')" class="text-gray-400 hover:text-red-500 transition px-3 py-2">
+            <i class="fas fa-trash-alt"></i>
+        </button>
       </div>
     `;
   });
 });
 
-/* PROJECTS */
+/* 3. FETCH PROJECTS */
 db.collection("projects").onSnapshot(snap => {
   const box = document.getElementById("projects");
+  const countEl = document.getElementById("project-count");
   box.innerHTML = "";
+  countEl.innerText = snap.size;
+
+  if(snap.empty) {
+      box.innerHTML = `<p class="col-span-full text-center text-gray-400">No projects found.</p>`;
+      return;
+  }
+
   snap.forEach(doc => {
+    const proj = doc.data();
     box.innerHTML += `
-      <div class="bg-gray-800 p-4 rounded-lg">
-        <h3 class="font-bold">${doc.data().title}</h3>
-        <button onclick="deleteProject('${doc.id}')" class="mt-2 bg-red-600 px-3 py-1 rounded">Delete</button>
+      <div class="card p-5 relative overflow-hidden group">
+        <div class="absolute top-0 left-0 w-1 h-full bg-brand"></div>
+        <div class="flex justify-between items-start">
+            <div>
+                <h3 class="font-bold text-gray-900 dark:text-white text-lg">${proj.title}</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">${proj.description}</p>
+                <div class="mt-3 flex items-center gap-2 text-xs text-gray-400">
+                    <i class="fas fa-user"></i> ${proj.author}
+                </div>
+            </div>
+            <button onclick="deleteProject('${doc.id}')" class="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500 transition px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm">
+                Delete
+            </button>
+        </div>
       </div>
     `;
   });
@@ -110,16 +290,33 @@ db.collection("projects").onSnapshot(snap => {
 
 /* DELETE FUNCTIONS */
 function deletePost(id) {
-  if (confirm("Delete post?")) db.collection("questions").doc(id).delete();
+  if (confirm("Are you sure you want to delete this post? This cannot be undone.")) {
+      db.collection("questions").doc(id).delete().catch(err => alert("Error deleting post: " + err));
+  }
 }
+
 function deleteProject(id) {
-  if (confirm("Delete project?")) db.collection("projects").doc(id).delete();
+  if (confirm("Are you sure you want to delete this project?")) {
+      db.collection("projects").doc(id).delete().catch(err => alert("Error deleting project: " + err));
+  }
 }
+
+function returnToApp() {
+  sessionStorage.setItem("skipAdminRedirect", "true");
+  window.location.href = "index.html";
+}
+
 function deleteUser(id) {
-  if (confirm("Delete user data?")) db.collection("users").doc(id).delete();
+  if (confirm("DANGER: Are you sure you want to delete this user data? The account auth will remain but data will be wiped.")) {
+      db.collection("users").doc(id).delete().catch(err => alert("Error deleting user: " + err));
+  }
 }
+
 function logout() {
-  auth.signOut().then(() => location.href = "login.html");
+  auth.signOut().then(() => {
+      localStorage.clear();
+      location.href = "login.html";
+  });
 }
 </script>
 
