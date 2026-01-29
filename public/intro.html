@@ -1,68 +1,342 @@
 <!DOCTYPE html>
+
+
 <html lang="en">
+
+
 <head>
-<meta charset="UTF-8">
-<title>SkillXChange</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<style>
-body{
-  margin:0;
-  height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:#fff;
-  font-family:'Inter',sans-serif;
-  opacity:1;
-  transition:opacity .6s ease;
-}
+  <meta charset="UTF-8">
 
-.brand{
-  font-size:64px;
-  font-weight:800;
-  letter-spacing:-0.03em;
-  background:linear-gradient(90deg,#0969da,#2da44e,#6366f1);
-  background-size:200% 200%;
-  -webkit-background-clip:text;
-  color:transparent;
-  animation:fadeIn 1s ease forwards, gradient 8s ease infinite;
-}
 
-.tagline{
-  margin-top:12px;
-  text-align:center;
-  font-size:18px;
-  color:#555;
-  opacity:0;
-  animation:fadeIn .8s ease forwards;
-  animation-delay:.6s;
-}
+  <title>SkillXChange Intro</title>
 
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes gradient{
-  0%{background-position:0% 50%}
-  50%{background-position:100% 50%}
-  100%{background-position:0% 50%}
-}
 
-@media(max-width:640px){
-  .brand{font-size:42px}
-}
-</style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+
+
+  <!-- SAME FONT AS home.html -->
+
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+
+
+
+
+  <style>
+
+
+    body {
+
+
+      margin: 0;
+
+
+      height: 100vh;
+
+
+      display: flex;
+
+
+      align-items: center;
+
+
+      justify-content: center;
+
+
+      background: white;
+
+
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+
+    }
+
+
+
+
+
+    #project-name {
+
+
+      font-size: 64px;
+
+
+      font-weight: 800; /* matches home page hero */
+
+
+      letter-spacing: -0.03em;
+
+
+      white-space: nowrap;
+
+
+    }
+
+
+
+
+
+    /* EACH LETTER */
+
+
+    .letter {
+
+
+      display: inline-block;
+
+
+      opacity: 0;
+
+
+      transform: translateY(20px);
+
+
+
+
+
+      background: linear-gradient(90deg, #0969da, #2da44e, #6366f1);
+
+
+      background-size: 300% 300%;
+
+
+      animation:
+
+
+        appear 0.45s forwards,
+
+
+        gradientMove 4s ease infinite;
+
+
+
+
+
+      -webkit-background-clip: text;
+
+
+      color: transparent;
+
+
+    }
+
+
+
+
+
+    @keyframes appear {
+
+
+      to {
+
+
+        opacity: 1;
+
+
+        transform: translateY(0);
+
+
+      }
+
+
+    }
+
+
+
+
+
+    @keyframes gradientMove {
+
+
+      0% { background-position: 0% 50%; }
+
+
+      50% { background-position: 100% 50%; }
+
+
+      100% { background-position: 0% 50%; }
+
+
+    }
+
+
+
+
+
+    .tagline {
+
+
+      margin-top: 14px;
+
+
+      font-size: 18px;
+
+
+      font-weight: 500;
+
+
+      color: #555;
+
+
+      text-align: center;
+
+
+    }
+
+
+
+
+
+    /* Mobile tuning */
+
+
+    @media (max-width: 640px) {
+
+
+      #project-name {
+
+
+        font-size: 42px;
+
+
+      }
+
+
+      .tagline {
+
+
+        font-size: 16px;
+
+
+      }
+
+
+    }
+
+
+  </style>
+
+
 </head>
 
-<body>
-<div>
-  <div class="brand">SkillXChange</div>
-  <div class="tagline">Exchange skills. Build your future.</div>
-</div>
 
-<script>
-setTimeout(()=>document.body.style.opacity=0,2200);
-setTimeout(()=>location.href="home.html",2800);
-</script>
+
+
+
+<body>
+
+
+
+
+
+  <div style="text-align:center;">
+
+
+    <!-- PROJECT NAME -->
+
+
+    <div id="project-name"></div>
+
+
+
+
+
+    <!-- TAGLINE -->
+
+
+    <div class="tagline">
+
+
+      Exchange skills. Build your future.
+
+
+    </div>
+
+
+  </div>
+
+
+
+
+
+  <script>
+
+
+    const projectName = "SkillXChange";
+
+
+    const container = document.getElementById("project-name");
+
+
+
+
+
+    for (let i = 0; i < projectName.length; i++) {
+
+
+      const span = document.createElement("span");
+
+
+      span.className = "letter";
+
+
+      span.style.animationDelay = (i * 0.1) + "s";
+
+
+      span.textContent = projectName[i];
+
+
+      container.appendChild(span);
+
+
+    }
+
+
+
+
+
+    // Smooth fade out
+
+
+    setTimeout(() => {
+
+
+      document.body.style.transition = "opacity 0.5s ease";
+
+
+      document.body.style.opacity = "0";
+
+
+    }, 3000);
+
+
+
+
+
+    // Redirect
+
+
+    setTimeout(() => {
+
+
+      window.location.href = "home.html";
+
+
+    }, 3500);
+
+
+  </script>
+
+
+
+
+
 </body>
-</html>
+
+
